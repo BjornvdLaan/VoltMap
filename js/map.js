@@ -99,7 +99,8 @@ $(document).ready(function () {
     //Parse the raw data
     var csvdata = parseData(csv);
 
-    //createList(csvdata);
+    //Add a column called 'voltage' which gives each region a score based on how much it is related to Volt
+    csvdata = addVoltage(csvdata);
 
     //Get the options for creating the map chart based on the csv data
     var options = createOptions(csvdata);
@@ -124,15 +125,14 @@ function clickLocation(e) {
     document.getElementById("stats").scrollIntoView();
 }
 
-//TODO: add clickhandler
-function createList(data) {
-    var options = {
-        valueNames: [ 'name' ],
-        // Since there are no elements in the list, this will be used as template.
-        item: '<li><h3 class="name"></h3></li>'
-    };
+function addVoltage(data) {
+    for (var i = 0; i < data.length; i++) {
+        data[i]['value'] = Math.floor(Math.random() * 100);
+    }
 
-    regionsList = new List('listcontainer', options, data);
+    console.log(data);
+
+    return data;
 }
 
 function refreshElectionStats(dataitem) {
@@ -331,6 +331,8 @@ function refreshVoteMap(dataitem) {
  */
 function createOptions(csvdata) {
 
+    console.log(csvdata);
+
     return {
         chart: {
             map: 'countries/nl/nl-all-all'
@@ -353,14 +355,9 @@ function createOptions(csvdata) {
 
         colorAxis: {
             min: 1,
-            type: 'logarithmic',
+            type: 'linear',
             minColor: '#EEEEFF',
             maxColor: '#703a92',
-            /*stops: [
-                [0, '#EFEFFF'],
-                [0.67, '#4444FF'],
-                [1, '#000022']
-            ]*/
         },
 
         plotOptions: {
