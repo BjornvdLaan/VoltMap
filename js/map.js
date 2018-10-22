@@ -1,45 +1,84 @@
-chart = null;
+//Variables to store the charts
+mapchart = null;
 agechart = null;
 votechart = null;
+regionsList = null;
 
-//Election stats
+//CSV column names of election stats
 stats = ['Kiesgerechtigden','Opkomst','OpkomstPercentage','OngeldigeStemmen','BlancoStemmen','GeldigeStemmen'];
 
-//All parties
+//CSV column names of the political parties
 parties = ['D66','CDA','PVV','VVD','SP','PVDA','CUSGP','GL',
     'PVDD','50PLUS','Piratenpartij','Artikel50','AntiEuroPartij',
     'DeGroenen','JEZUSLEEFT','ikkiesvooreerlijk.eu','LDP',
     'AandachtEnEenvoud','IQDeRechtenPlichtenPartij'];
 
-//(TODO: recalculate) Dutch averages to show alongside regional numbers.
+//Total (national) number of votes to show alongside regional numbers.
 nationalparties = {
-    'D66': 741797,
-    'CDA': 722120,
+    'D66': 734273,
+    'CDA': 720568,
     'PVV': 633591,
-    'VVD': 570810,
-    'SP': 458332,
-    'PVDA': 446945,
-    'CUSGP': 365408,
-    'GL': 331196,
-    'PVDD': 200494,
-    '50PLUS': 175061,
-    'Piratenpartij': 40699,
-    'Artikel50': 24086,
-    'AntiEuroPartij': 12302,
-    'DeGroenen': 10885,
-    'JEZUSLEEFT': 9517,
-    'ikkiesvooreerlijk.eu': 6791,
-    'LDP': 6343,
-    'AandachtEnEenvoud': 3179,
-    'IQDeRechtenPlichtenPartij': 1711
+    'VVD': 570089,
+    'SP': 457245,
+    'PVDA': 446111,
+    'CUSGP': 364756,
+    'GL': 331109,
+    'PVDD': 200009,
+    '50PLUS': 174816,
+    'Piratenpartij': 40172,
+    'Artikel50': 24042,
+    'AntiEuroPartij': 12275,
+    'DeGroenen': 10870,
+    'JEZUSLEEFT': 9504,
+    'ikkiesvooreerlijk.eu': 6788,
+    'LDP': 6335,
+    'AandachtEnEenvoud': 3165,
+    'IQDeRechtenPlichtenPartij': 1702
 };
 
+// Objects for each age group.
+// column = CSV column name of the age group
+// name = the label that appears on the chart
 agegroups = [
-    'Jonger dan 5 jaar', '5 tot 10 jaar', '10 tot 15 jaar', '15 tot 20 jaar',
-    '20 tot 25 jaar', '25 tot 45 jaar', '45 tot 65 jaar', '65 tot 80 jaar', '80 jaar of ouder'
+    {
+        name: 'Younger than 5',
+        column: 'Jonger dan 5 jaar'
+    },
+    {
+        name: '5-10',
+        column: '5 tot 10 jaar'
+    },
+    {
+        name: '10-15',
+        column: '10 tot 15 jaar'
+    },
+    {
+        name: '15-20',
+        column: '15 tot 20 jaar'
+    },
+    {
+        name: '20-25',
+        column: '20 tot 25 jaar'
+    },
+    {
+        name: '25-45',
+        column: '25 tot 45 jaar'
+    },
+    {
+        name: '45-65',
+        column: '45 tot 65 jaar'
+    },
+    {
+        name: '65-80',
+        column: '65 tot 80 jaar'
+    },
+    {
+        name: '80 or older',
+        column: '80 jaar of ouder'
+    },
 ];
 
-//TODO: recalculate
+//Total (national) numbers in age groups to show alongside regional numbers.
 nationalages = {
     'Jonger dan 5 jaar': 855834,
     '5 tot 10 jaar': 910964,
@@ -52,22 +91,48 @@ nationalages = {
     '80 jaar of ouder': 748111
 };
 
+//This part is run automatically when page is loaded
 $(document).ready(function () {
+    //Read CSV data
     var csv = document.getElementById('csv').innerHTML;
-    var csvdata = parseData(csv);
-    var options = createOptions(csvdata);
 
-    chart = Highcharts.mapChart('mapcontainer', options);
+    //Parse the raw data
+    var csvdata = parseData(csv);
+
+    //createList(csvdata);
+
+    //Get the options for creating the map chart based on the csv data
+    var options = createOptions(csvdata);
+    //Create the map chart
+    mapchart = Highcharts.mapChart('mapcontainer', options);
 });
 
+/**
+ * Click handler that is triggered when a region is clicked.
+ * @param e
+ */
 function clickLocation(e) {
+    //Get the data of the clicked region
     var data = e.point;
 
+    //Refresh all charts to display data of the clicked region
     refreshAgeMap(data);
     refreshVoteMap(data);
     refreshElectionStats(data);
 
+    //Scroll down to display charts
     document.getElementById("stats").scrollIntoView();
+}
+
+//TODO: add clickhandler
+function createList(data) {
+    var options = {
+        valueNames: [ 'name' ],
+        // Since there are no elements in the list, this will be used as template.
+        item: '<li><h3 class="name"></h3></li>'
+    };
+
+    regionsList = new List('listcontainer', options, data);
 }
 
 function refreshElectionStats(dataitem) {
@@ -85,53 +150,26 @@ function refreshAgeMap(dataitem) {
     var regionaltotal = 0;
     var nationaltotal = 0;
 
+    //Calculate total number of votes and people
     for(var agegroup of agegroups) {
-        regionaltotal += dataitem[agegroup];
-        nationaltotal += nationalages[agegroup];
+        regionaltotal += dataitem[agegroup.column];
+        nationaltotal += nationalages[agegroup.column];
     }
 
+    //(Computation trick) Divide by 100 so that you do not have to multiply by a 100 every time
     regionaltotal /= 100;
     nationaltotal /= 100;
 
-    var series = [
-        {
-            name: '80 or older',
-            data: [dataitem['80 jaar of ouder'] / regionaltotal, nationalages['80 jaar of ouder'] / nationaltotal]
-        },
-        {
-            name: '65 to 80',
-            data: [dataitem['65 tot 80 jaar'] / regionaltotal, nationalages['65 tot 80 jaar'] / nationaltotal]
-        },
-        {
-            name: '45 to 65',
-            data: [dataitem['45 tot 65 jaar'] / regionaltotal, nationalages['45 tot 65 jaar'] / nationaltotal]
-        },
-        {
-            name: '25 to 45',
-            data: [dataitem['25 tot 45 jaar'] / regionaltotal, nationalages['25 tot 45 jaar'] / nationaltotal]
-        },
-        {
-            name: '20 to 25',
-            data: [dataitem['20 tot 25 jaar'] / regionaltotal, nationalages['20 tot 25 jaar'] / nationaltotal]
-        },
-        {
-            name: '15 to 20',
-            data: [dataitem['15 tot 20 jaar'] / regionaltotal, nationalages['15 tot 20 jaar'] / nationaltotal]
-        },
-        {
-            name: '10 to 15',
-            data: [dataitem['10 tot 15 jaar'] / regionaltotal, nationalages['10 tot 15 jaar'] / nationaltotal]
-        },
-        {
-            name: '5 to 10',
-            data: [dataitem['5 tot 10 jaar'] / regionaltotal, nationalages['5 tot 10 jaar'] / nationaltotal]
-        },
-        {
-            name: 'Younger than 5',
-            data: [dataitem['Jonger dan 5 jaar'] / regionaltotal, nationalages['Jonger dan 5 jaar'] / nationaltotal]
-        }
-    ];
+    //Create the series by calculating the regional age percentages for the selected region
+    var regionalseries = [];
+    for(var agegroup of agegroups) {
+        regionalseries.push({
+            name: agegroup.name,
+            data: [dataitem[agegroup.column] / regionaltotal, nationalages[agegroup.column] / nationaltotal]
+        });
+    }
 
+    //If the chart is created for the first time
     if (agechart === null) {
         agechart = Highcharts.chart('agecontainer', {
             chart: {
@@ -147,25 +185,29 @@ function refreshAgeMap(dataitem) {
             },
             xAxis: {
                 categories: [dataitem.name, 'National']
+
             },
             yAxis: {
                 min: 0,
                 max: 100,
                 title: {
                     text: 'Number of people'
-                }
+                },
+                reversed: true
             },
             legend: {
-                reversed: true
+                reversed: false
             },
             plotOptions: {
                 series: {
                     stacking: 'normal'
                 }
             },
-            series: series
+            series: regionalseries
         });
-    } else {
+    }
+    //Else if the chart is refreshed
+    else {
         agechart.update({
             xAxis: {
                 categories: [dataitem.name, 'National']
@@ -173,45 +215,45 @@ function refreshAgeMap(dataitem) {
             title: {
                 text: 'Age distribution in ' + dataitem.name
             },
-            series: series
+            series: regionalseries
         });
     }
 
-}
-
-function roundOneDecimal(num) {
-    return Math.round(num * 10) / 10
 }
 
 function refreshVoteMap(dataitem) {
-    data = [];
-    nationaldata = [];
+    var regionaldata = [];
 
     for(var party of parties) {
-        data.push({
+        regionaldata.push({
            name: party,
            y: dataitem[party]
         });
-
-        nationaldata.push({
-            name: party,
-            y: nationalparties[party]
-        });
     }
 
-    var series = [{
-        name: 'Parties',
+    var regionalseries = [{
+        name: 'Parties Regional',
         colorByPoint: true,
-        data: data
+        data: regionaldata
     }];
 
-    var nationalseries = [{
-        name: 'Parties National',
-        colorByPoint: true,
-        data: data
-    }];
-
+    //If the chart is created for the first time
     if (votechart === null) {
+        var nationaldata = [];
+
+        for(var party of parties) {
+            nationaldata.push({
+                name: party,
+                y: nationalparties[party]
+            });
+        }
+
+        var nationalseries = [{
+            name: 'Parties National',
+            colorByPoint: true,
+            data: nationaldata
+        }];
+
         votechart = Highcharts.chart('votecontainer', {
             chart: {
                 plotBackgroundColor: null,
@@ -238,7 +280,7 @@ function refreshVoteMap(dataitem) {
                     }
                 }
             },
-            series: series
+            series: regionalseries
         });
 
         Highcharts.chart('nationalvotecontainer', {
@@ -252,7 +294,7 @@ function refreshVoteMap(dataitem) {
                 text: 'Votes National'
             },
             tooltip: {
-                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                pointFormat: '{nationalseries.name}: <b>{point.percentage:.1f}%</b>'
             },
             plotOptions: {
                 pie: {
@@ -269,18 +311,24 @@ function refreshVoteMap(dataitem) {
             },
             series: nationalseries
         });
-    } else {
+    }
+    //Else if the chart is refreshed
+    else {
         votechart.update({
             title: {
                 text: 'Votes in ' + dataitem.name
             },
-            series: series
+            series: regionalseries
         });
     }
 
 }
 
-// Function to create the options
+/**
+ * Create the options to be used for creating the map chart.
+ * @param csvdata
+ * @returns {{chart: {map: string}, title: {text: string}, subtitle: {text: string}, mapNavigation: {enabled: boolean, buttonOptions: {verticalAlign: string}}, colorAxis: {min: number, type: string, minColor: string, maxColor: string}, plotOptions: {series: {events: {click: plotOptions.series.events.click}}}, series: *[]}}
+ */
 function createOptions(csvdata) {
 
     return {
@@ -346,6 +394,11 @@ function createOptions(csvdata) {
     };
 }
 
+/**
+ * Parse CSV data to be used in the application
+ * @param csv
+ * @returns {*}
+ */
 function parseData(csv) {
     var data = Papa.parse(csv, {
         download: false,
@@ -357,4 +410,9 @@ function parseData(csv) {
     });
 
     return data.data;
+}
+
+//Round by one decimal for cleaner formatting.
+function roundOneDecimal(num) {
+    return Math.round(num * 10) / 10
 }
