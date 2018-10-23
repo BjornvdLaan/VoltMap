@@ -126,11 +126,41 @@ function clickLocation(e) {
 }
 
 function addVoltage(data) {
+
+    //Compute total number of people and votes per region
     for (var i = 0; i < data.length; i++) {
-        data[i]['value'] = Math.floor(Math.random() * 100);
+        data[i]['totalages'] = 0;
+        data[i]['totalvotes'] = 0;
+
+        for(var agegroup of agegroups) {
+            if(data[i][agegroup.column] === undefined || data[i][agegroup.column] === '') {
+                continue;
+            }
+            data[i]['totalages'] += data[i][agegroup.column];
+        }
+        for(var party of parties) {
+            if(data[i][party] === undefined) {
+                continue;
+            }
+
+            data[i]['totalvotes'] += data[i][party];
+        }
     }
 
-    console.log(data);
+    //Compute the Voltage of each region
+    for (var j = 0; j < data.length; j++) {
+        var voteScore = (data[j]['D66'] + data[j]['GL']) / data[j]['totalvotes'];
+        var ageScore = (data[j]['15 tot 20 jaar'] + data[j]['20 tot 25 jaar']) / data[j]['totalages'];
+
+
+        data[j]['value'] = roundOneDecimal(voteScore * 70 + ageScore * 30);
+
+        if(data[j]['name'] === 'Veghel') {
+            console.log(voteScore);
+            console.log(ageScore);
+            console.log(data[j]['value']);
+        }
+    }
 
     return data;
 }
@@ -330,8 +360,6 @@ function refreshVoteMap(dataitem) {
  * @returns {{chart: {map: string}, title: {text: string}, subtitle: {text: string}, mapNavigation: {enabled: boolean, buttonOptions: {verticalAlign: string}}, colorAxis: {min: number, type: string, minColor: string, maxColor: string}, plotOptions: {series: {events: {click: plotOptions.series.events.click}}}, series: *[]}}
  */
 function createOptions(csvdata) {
-
-    console.log(csvdata);
 
     return {
         chart: {
