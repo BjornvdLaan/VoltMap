@@ -36,59 +36,22 @@ nationalparties = {
     'IQDeRechtenPlichtenPartij': 1702
 };
 
-// Objects for each age group.
-// column = CSV column name of the age group
-// name = the label that appears on the chart
+//CSV column name of the age group
 agegroups = [
-    {
-        name: 'Younger than 5',
-        column: 'Jonger dan 5 jaar'
-    },
-    {
-        name: '5-10',
-        column: '5 tot 10 jaar'
-    },
-    {
-        name: '10-15',
-        column: '10 tot 15 jaar'
-    },
-    {
-        name: '15-20',
-        column: '15 tot 20 jaar'
-    },
-    {
-        name: '20-25',
-        column: '20 tot 25 jaar'
-    },
-    {
-        name: '25-45',
-        column: '25 tot 45 jaar'
-    },
-    {
-        name: '45-65',
-        column: '45 tot 65 jaar'
-    },
-    {
-        name: '65-80',
-        column: '65 tot 80 jaar'
-    },
-    {
-        name: '80 or older',
-        column: '80 jaar of ouder'
-    },
+    'Younger than 5', '5-10', '10-15', '15-20', '20-25', '25-45', '45-65', '65-80', '80 or older'
 ];
 
 //Total (national) numbers in age groups to show alongside regional numbers.
 nationalages = {
-    'Jonger dan 5 jaar': 855834,
-    '5 tot 10 jaar': 910964,
-    '10 tot 15 jaar': 960326,
-    '15 tot 20 jaar': 1014556,
-    '20 tot 25 jaar': 1049590,
-    '25 tot 45 jaar': 4141842,
-    '45 tot 65 jaar': 4725595,
-    '65 tot 80 jaar': 2345108,
-    '80 jaar of ouder': 748111
+    'Younger than 5': 855834,
+    '5-10': 910964,
+    '10-15': 960326,
+    '15-20': 1014556,
+    '20-25': 1049590,
+    '25-45': 4141842,
+    '45-65': 4725595,
+    '65-80': 2345108,
+    '80 or older': 748111
 };
 
 //This part is run automatically when page is loaded
@@ -133,10 +96,11 @@ function addVoltage(data) {
         data[i]['totalvotes'] = 0;
 
         for(var agegroup of agegroups) {
-            if(data[i][agegroup.column] === undefined || data[i][agegroup.column] === '') {
+            if(data[i][agegroup] === undefined || data[i][agegroup] === '') {
                 continue;
             }
-            data[i]['totalages'] += data[i][agegroup.column];
+
+            data[i]['totalages'] += data[i][agegroup];
         }
         for(var party of parties) {
             if(data[i][party] === undefined) {
@@ -150,16 +114,10 @@ function addVoltage(data) {
     //Compute the Voltage of each region
     for (var j = 0; j < data.length; j++) {
         var voteScore = (data[j]['D66'] + data[j]['GL']) / data[j]['totalvotes'];
-        var ageScore = (data[j]['15 tot 20 jaar'] + data[j]['20 tot 25 jaar']) / data[j]['totalages'];
+        var ageScore = (data[j]['15-20'] + data[j]['20-25']) / data[j]['totalages'];
 
 
         data[j]['value'] = roundOneDecimal(voteScore * 70 + ageScore * 30);
-
-        if(data[j]['name'] === 'Veghel') {
-            console.log(voteScore);
-            console.log(ageScore);
-            console.log(data[j]['value']);
-        }
     }
 
     return data;
@@ -182,8 +140,8 @@ function refreshAgeMap(dataitem) {
 
     //Calculate total number of votes and people
     for(var agegroup of agegroups) {
-        regionaltotal += dataitem[agegroup.column];
-        nationaltotal += nationalages[agegroup.column];
+        regionaltotal += dataitem[agegroup];
+        nationaltotal += nationalages[agegroup];
     }
 
     //(Computation trick) Divide by 100 so that you do not have to multiply by a 100 every time
@@ -194,8 +152,8 @@ function refreshAgeMap(dataitem) {
     var regionalseries = [];
     for(var agegroup of agegroups) {
         regionalseries.push({
-            name: agegroup.name,
-            data: [dataitem[agegroup.column] / regionaltotal, nationalages[agegroup.column] / nationaltotal]
+            name: agegroup,
+            data: [dataitem[agegroup] / regionaltotal, nationalages[agegroup] / nationaltotal]
         });
     }
 
