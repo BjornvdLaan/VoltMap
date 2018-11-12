@@ -4,11 +4,10 @@ agechart = null;
 votechart = null;
 regionsList = null;
 
-//Set the map that is loaded
-countryMap = 'countries/nl/nl-all-all';
-
-//CSV column names of election stats
-stats = ['Kiesgerechtigden','Opkomst','OpkomstPercentage','OngeldigeStemmen','BlancoStemmen','GeldigeStemmen'];
+//Set the country that is displayed
+country = 'nl';
+//For some countries (DE, NL), a more detailed map is also available. If you want to use it, put this variable to true.
+detailedMap = true;
 
 //CSV column names of the political parties
 parties = ['D66','CDA','PVV','VVD','SP','PVDA','CUSGP','GL',
@@ -65,6 +64,10 @@ function clickLocation(e) {
     document.getElementById("stats").scrollIntoView();
 }
 
+/**
+ The value set here determines the shade of purple the region becomes.
+ By default, all regions are set to 100.
+ */
 function addVoltage(data) {
 
     //Compute total number of people and votes per region
@@ -100,17 +103,6 @@ function addVoltage(data) {
     return data;
 }
 
-function refreshElectionStats(dataitem) {
-    var statstext = "<p><b>Election statistics for " + dataitem.name + "</b><br/>";
-    statstext += "Total voters: " + dataitem['Kiesgerechtigden'] + "<br/>";
-    statstext += "Turnout: " + dataitem['OpkomstPercentage'] + '% (' + dataitem['Opkomst'] + " votes)<br/><br/>";
-    statstext += "Valid votes: " + dataitem['GeldigeStemmen'] + "<br/>";
-    statstext += "Invalid votes: " + dataitem['OngeldigeStemmen'] + "<br/>";
-    statstext += "Blank votes: " + dataitem['BlancoStemmen'] + "<br/>";
-
-    document.getElementById("statscontainer").innerHTML = statstext;
-}
-
 function initializeNationalTotals(csvdata) {
     //Initialize object to hold national totals
     for(var a of agegroups) {
@@ -138,6 +130,17 @@ function initializeNationalTotals(csvdata) {
             nationalparties[party] += item[party];
         }
     }
+}
+
+function refreshElectionStats(dataitem) {
+    var statstext = "<p><b>Election statistics for " + dataitem.name + "</b><br/>";
+    statstext += "Total voters: " + dataitem['Kiesgerechtigden'] + "<br/>";
+    statstext += "Turnout: " + dataitem['OpkomstPercentage'] + '% (' + dataitem['Opkomst'] + " votes)<br/><br/>";
+    statstext += "Valid votes: " + dataitem['GeldigeStemmen'] + "<br/>";
+    statstext += "Invalid votes: " + dataitem['OngeldigeStemmen'] + "<br/>";
+    statstext += "Blank votes: " + dataitem['BlancoStemmen'] + "<br/>";
+
+    document.getElementById("statscontainer").innerHTML = statstext;
 }
 
 function refreshAgeMap(dataitem) {
@@ -324,10 +327,14 @@ function refreshVoteMap(dataitem) {
  * @returns {{chart: {map: string}, title: {text: string}, subtitle: {text: string}, mapNavigation: {enabled: boolean, buttonOptions: {verticalAlign: string}}, colorAxis: {min: number, type: string, minColor: string, maxColor: string}, plotOptions: {series: {events: {click: plotOptions.series.events.click}}}, series: *[]}}
  */
 function createOptions(csvdata) {
+    postfix = '';
+    if(detailedMap === true) {
+        postfix = '-all';
+    }
 
     return {
         chart: {
-            map: countryMap
+            map: 'countries/' + country + '/' + country + '-all' + postfix
         },
 
         title: {
