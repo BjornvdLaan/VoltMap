@@ -4,6 +4,9 @@ agechart = null;
 votechart = null;
 regionsList = null;
 
+//Set the map that is loaded
+countryMap = 'countries/nl/nl-all-all';
+
 //CSV column names of election stats
 stats = ['Kiesgerechtigden','Opkomst','OpkomstPercentage','OngeldigeStemmen','BlancoStemmen','GeldigeStemmen'];
 
@@ -324,15 +327,15 @@ function createOptions(csvdata) {
 
     return {
         chart: {
-            map: 'countries/nl/nl-all-all'
+            map: countryMap
         },
 
         title: {
-            text: 'Map of the Netherlands'
+            text: ''
         },
 
         subtitle: {
-            text: 'Source map: <a href="http://code.highcharts.com/mapdata/countries/nl/nl-all-all.js">The Netherlands, admin2</a>'
+            text: ''
         },
 
         mapNavigation: {
