@@ -13,46 +13,17 @@ parties = ['D66','CDA','PVV','VVD','SP','PVDA','CUSGP','GL',
     'DeGroenen','JEZUSLEEFT','ikkiesvooreerlijk.eu','LDP',
     'AandachtEnEenvoud','IQDeRechtenPlichtenPartij'];
 
-//Total (national) number of votes to show alongside regional numbers.
-nationalparties = {
-    'D66': 734273,
-    'CDA': 720568,
-    'PVV': 633591,
-    'VVD': 570089,
-    'SP': 457245,
-    'PVDA': 446111,
-    'CUSGP': 364756,
-    'GL': 331109,
-    'PVDD': 200009,
-    '50PLUS': 174816,
-    'Piratenpartij': 40172,
-    'Artikel50': 24042,
-    'AntiEuroPartij': 12275,
-    'DeGroenen': 10870,
-    'JEZUSLEEFT': 9504,
-    'ikkiesvooreerlijk.eu': 6788,
-    'LDP': 6335,
-    'AandachtEnEenvoud': 3165,
-    'IQDeRechtenPlichtenPartij': 1702
-};
 
 //CSV column name of the age group
 agegroups = [
     'Younger than 5', '5-10', '10-15', '15-20', '20-25', '25-45', '45-65', '65-80', '80 or older'
 ];
 
+//Total (national) number of votes to show alongside regional numbers.
+nationalparties = {};
+
 //Total (national) numbers in age groups to show alongside regional numbers.
-nationalages = {
-    'Younger than 5': 855834,
-    '5-10': 910964,
-    '10-15': 960326,
-    '15-20': 1014556,
-    '20-25': 1049590,
-    '25-45': 4141842,
-    '45-65': 4725595,
-    '65-80': 2345108,
-    '80 or older': 748111
-};
+nationalages = {};
 
 //This part is run automatically when page is loaded
 $(document).ready(function () {
@@ -61,6 +32,9 @@ $(document).ready(function () {
 
     //Parse the raw data
     var csvdata = parseData(csv);
+
+    //Initialize the national totals of both age and votes
+    initializeNationalTotals(csvdata);
 
     //Add a column called 'voltage' which gives each region a score based on how much it is related to Volt
     csvdata = addVoltage(csvdata);
@@ -132,6 +106,35 @@ function refreshElectionStats(dataitem) {
     statstext += "Blank votes: " + dataitem['BlancoStemmen'] + "<br/>";
 
     document.getElementById("statscontainer").innerHTML = statstext;
+}
+
+function initializeNationalTotals(csvdata) {
+    //Initialize object to hold national totals
+    for(var a of agegroups) {
+        nationalages[a] = 0;
+    }
+    for(var p of parties) {
+        nationalparties[p] = 0;
+    }
+
+    //Compute national totals of each age group and votes
+    for(var item of csvdata) {
+        for(var agegroup of agegroups) {
+            if(item[agegroup] === undefined || item[agegroup] === '') {
+                continue;
+            }
+
+            nationalages[agegroup] += item[agegroup];
+        }
+
+        for(var party of parties) {
+            if(item[party] === undefined || item[party] === '') {
+                continue;
+            }
+
+            nationalparties[party] += item[party];
+        }
+    }
 }
 
 function refreshAgeMap(dataitem) {
