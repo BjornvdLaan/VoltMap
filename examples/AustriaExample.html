@@ -24,16 +24,10 @@
         parties = ['SPÖ','ÖVP','FPÖ','NEOS','PILZ','GRÜNE','GILT','KPÖ'];
 
 
-        //CSV column name of the age group
+        //CSV column name of the age groups
         agegroups = [
             'Under 15', '15-65', '65 and over'
         ];
-
-        //Total (national) number of votes to show alongside regional numbers.
-        nationalparties = {};
-
-        //Total (national) numbers in age groups to show alongside regional numbers.
-        nationalages = {};
     </script>
 
 </head>
@@ -109,7 +103,12 @@ Wien,300664,188273,186088,56323,65498,51398,7677,11991,246849,1177674,289704
     mapchart = null;
     agechart = null;
     votechart = null;
-    regionsList = null;
+
+    //Total (national) number of votes to show alongside regional numbers.
+    nationalparties = {};
+
+    //Total (national) numbers in age groups to show alongside regional numbers.
+    nationalages = {};
 
     //This part is run automatically when page is loaded
     $(document).ready(function () {
